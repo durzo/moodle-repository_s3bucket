@@ -194,6 +194,38 @@ class repository_s3bucket extends repository {
         $mform->addRule('access_key', $strrequired, 'required', null, 'client');
         $mform->addRule('secret_key', $strrequired, 'required', null, 'client');
         $mform->addRule('bucket_name', $strrequired, 'required', null, 'client');
+        
+        $options = array('subdirs' => 1, 'maxfiles' => -1, 'accepted_types' => '*', 'return_types' => FILE_INTERNAL);
+        $mform->addElement('filemanager', 'attachments', get_string('browse', 'editor'), null, $options);
+        $mform->disabledif('attachments', 'access_key', 'eq', '');
+        $mform->disabledif('attachments', 'secret_key', 'eq', '');
+        $mform->disabledif('attachments', 'bucket_name', 'eq', '');        
+    }
+
+    /**
+     * Validate repository plugin instance form
+     *
+     * @param moodleform $mform moodle form
+     * @param array $data form data
+     * @param array $errors errors
+     * @return array errors
+     */
+    public static function instance_form_validation($mform, $data, $errors) {
+        global $DB, $USER;
+        $context = context_user::instance($USER->id);
+        $params = array('contextid' => $context->id, 'component' => 'user', 'filearea' => 'draft', 'itemid' => $data['attachments']);
+        if ($files = $DB->get_records('files', $params)) {
+            $s3 = new S3($data['access_key'], $data['secret_key'], false, $data['endpoint']);
+            $fs = get_file_storage();
+            foreach ($files as $file) {
+                if ($file->filesize > 0) {
+                    $src = $fs->get_file_by_hash($file->pathnamehash);
+                    $path = substr($file->filepath, 1) . $file->filename;
+                    $result = $s3->putObjectString($src->get_content(), $data['bucket_name'], $path);
+                }
+            }
+        }
+        return $errors;
     }
 
     /**

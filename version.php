@@ -17,19 +17,18 @@
 /**
  * Version details
  *
- * @package    repository
- * @subpackage s3bucket
+ * @package    repository_s3bucket
  * @copyright  2015 Renaat Debleu (www.eWallah.net) (based on work by Dongsheng Cai)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2015121206;
+$plugin->version   = 2016113000;
 $plugin->requires  = 2012112900;
 $plugin->component = 'repository_s3bucket';
-$plugin->maturity  = MATURITY_RC;
-$plugin->release   = '1.0';
+$plugin->maturity  = MATURITY_STABLE;
+$plugin->release   = '3.1+';
 $plugin->dependencies = array(
     'repository_s3' => ANY_VERSION
 );
