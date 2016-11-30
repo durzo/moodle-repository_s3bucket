@@ -27,7 +27,8 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir. "/formslib.php");
 
 class repository_s3bucket_manage_form extends moodleform {
-    function definition() {
+
+    public function definition() {
         global $PAGE;
         $mform = $this->_form;
 

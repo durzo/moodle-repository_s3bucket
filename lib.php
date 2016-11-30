@@ -21,6 +21,9 @@
  * @copyright  2015 Renaat Debleu (www.eWallah.net) (based on work by Dongsheng Cai)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die;
+
 require_once($CFG->dirroot . '/repository/lib.php');
 require_once($CFG->dirroot . '/repository/s3/S3.php');
 
@@ -194,12 +197,12 @@ class repository_s3bucket extends repository {
         $mform->addRule('access_key', $strrequired, 'required', null, 'client');
         $mform->addRule('secret_key', $strrequired, 'required', null, 'client');
         $mform->addRule('bucket_name', $strrequired, 'required', null, 'client');
-        
+
         $options = array('subdirs' => 1, 'maxfiles' => -1, 'accepted_types' => '*', 'return_types' => FILE_INTERNAL);
         $mform->addElement('filemanager', 'attachments', get_string('browse', 'editor'), null, $options);
         $mform->disabledif('attachments', 'access_key', 'eq', '');
         $mform->disabledif('attachments', 'secret_key', 'eq', '');
-        $mform->disabledif('attachments', 'bucket_name', 'eq', '');        
+        $mform->disabledif('attachments', 'bucket_name', 'eq', '');
     }
 
     /**
@@ -212,8 +215,8 @@ class repository_s3bucket extends repository {
      */
     public static function instance_form_validation($mform, $data, $errors) {
         global $DB, $USER;
-        $context = context_user::instance($USER->id);
-        $params = array('contextid' => $context->id, 'component' => 'user', 'filearea' => 'draft', 'itemid' => $data['attachments']);
+        $cont = context_user::instance($USER->id);
+        $params = array('contextid' => $cont->id, 'component' => 'user', 'filearea' => 'draft', 'itemid' => $data['attachments']);
         if ($files = $DB->get_records('files', $params)) {
             $s3 = new S3($data['access_key'], $data['secret_key'], false, $data['endpoint']);
             $fs = get_file_storage();
@@ -247,7 +250,7 @@ class repository_s3bucket extends repository {
     }
 
     /**
-     * Get S3 
+     * Get S3
      *
      * @return s3
      */
