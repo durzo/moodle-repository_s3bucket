@@ -1,4 +1,6 @@
-# repository_s3bucket
+# repository_s3bucket 
+
+![built status(https://travis-ci.org/ewallah/moodle-repository_s3bucket.svg?branch=master)
 
 Instead of giving all users access to your complete S3 account, this plugin makes it
 possible to give teachers and managers access to a specific S3 folder (bucket).
