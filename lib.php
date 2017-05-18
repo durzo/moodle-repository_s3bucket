@@ -86,7 +86,8 @@ class repository_s3bucket extends repository {
                               'thumbnail' => $OUTPUT->image_url(file_folder_icon(90))->out(false), 'path' => $object['prefix']];
             } else {
                 $files[] = ['title' => $title, 'size' => $object['size'], 'datemodified' => $object['time'],
-                            'source' => $object['name'], 'thumbnail' => $OUTPUT->image_url(file_extension_icon($title, 90))->out(false)];
+                            'source' => $object['name'],
+                            'thumbnail' => $OUTPUT->image_url(file_extension_icon($title, 90))->out(false)];
             }
         }
         $list['list'] = array_merge($folders, $files);

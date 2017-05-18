@@ -65,7 +65,8 @@ if ($data = $mform->get_data()) {
             }
         }
         $filenames = array_diff($filenames, array_keys($data->deletefile));
-        $mform = new repository_s3bucket_manage_form(null, ['options' => $options, 'draftitemid' => $itemid, 'files' => $filenames]);
+        $mform = new repository_s3bucket_manage_form(null,
+            ['options' => $options, 'draftitemid' => $itemid, 'files' => $filenames]);
     }
 }
 

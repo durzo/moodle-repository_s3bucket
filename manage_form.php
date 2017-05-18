@@ -26,8 +26,18 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir. "/formslib.php");
 
+/**
+ * Form allowing to collect files from S3 bucket
+ *
+ * @package    repository_s3bucket
+ * @copyright  2015 Renaat Debleu (www.eWallah.net) (based on work by Dongsheng Cai)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class repository_s3bucket_manage_form extends moodleform {
 
+    /**
+     * Define this form - called from the parent constructor
+     */
     public function definition() {
         $mform = $this->_form;
 
