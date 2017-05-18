@@ -45,18 +45,17 @@ $PAGE->set_title($title);
 $PAGE->set_heading($title);
 $PAGE->set_pagelayout('popup');
 
-$options = array('subdirs' => 0, 'maxbytes' => $maxbytes, 'maxfiles' => -1, 'context' => $PAGE->context);
+$options = ['subdirs' => 0, 'maxbytes' => $maxbytes, 'maxfiles' => -1, 'context' => $PAGE->context];
 
 $usercontext = context_user::instance($USER->id);
 $fs = get_file_storage();
 $files = $fs->get_directory_files($usercontext->id, 'user', 'draft', $itemid, '/', false, false);
-$filenames = array();
+$filenames = [];
 foreach ($files as $file) {
     $filenames[] = $file->get_filename();
 }
 
-$mform = new repository_s3bucket_manage_form(null,
-        array('options' => $options, 'draftitemid' => $itemid, 'files' => $filenames));
+$mform = new repository_s3bucket_manage_form(null, ['options' => $options, 'draftitemid' => $itemid, 'files' => $filenames]);
 
 if ($data = $mform->get_data()) {
     if (!empty($data->deletefile)) {
@@ -66,8 +65,7 @@ if ($data = $mform->get_data()) {
             }
         }
         $filenames = array_diff($filenames, array_keys($data->deletefile));
-        $mform = new repository_s3bucket_manage_form(null,
-                array('options' => $options, 'draftitemid' => $itemid, 'files' => $filenames));
+        $mform = new repository_s3bucket_manage_form(null, ['options' => $options, 'draftitemid' => $itemid, 'files' => $filenames]);
     }
 }
 

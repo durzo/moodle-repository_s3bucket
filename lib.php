@@ -48,15 +48,15 @@ class repository_s3bucket extends repository {
         $s = $this->create_s3();
         $bucket = $this->get_option('bucket_name');
 
-        $list = array();
-        $list['list'] = array();
-        $list['path'] = array(array('name' => $bucket, 'path' => ''));
+        $list = [];
+        $list['list'] = [];
+        $list['path'] = [['name' => $bucket, 'path' => '']];
         $list['manage'] = false;
         $list['dynload'] = true;
         $list['nologin'] = true;
         $list['nosearch'] = true;
-        $files = array();
-        $folders = array();
+        $files = [];
+        $folders = [];
 
         try {
             $contents = $s->getBucket($bucket, $path, null, null, '/', true);
@@ -82,20 +82,11 @@ class repository_s3bucket extends repository {
                 }
             }
             if (isset($object['prefix'])) {
-                $folders[] = array(
-                    'title' => $title,
-                    'children' => array(),
-                    'thumbnail' => $OUTPUT->image_url(file_folder_icon(90))->out(false),
-                    'path' => $object['prefix']
-                );
+                $folders[] = ['title' => $title, 'children' => [],
+                              'thumbnail' => $OUTPUT->image_url(file_folder_icon(90))->out(false), 'path' => $object['prefix']];
             } else {
-                $files[] = array(
-                    'title' => $title,
-                    'size' => $object['size'],
-                    'datemodified' => $object['time'],
-                    'source' => $object['name'],
-                    'thumbnail' => $OUTPUT->image_url(file_extension_icon($title, 90))->out(false)
-                );
+                $files[] = ['title' => $title, 'size' => $object['size'], 'datemodified' => $object['time'],
+                            'source' => $object['name'], 'thumbnail' => $OUTPUT->image_url(file_extension_icon($title, 90))->out(false)];
             }
         }
         $list['list'] = array_merge($folders, $files);
@@ -124,7 +115,7 @@ class repository_s3bucket extends repository {
                 $e->getMessage()
             );
         }
-        return array('path' => $path);
+        return ['path' => $path];
     }
 
     /**
@@ -162,7 +153,7 @@ class repository_s3bucket extends repository {
      * @return array
      */
     public static function get_instance_option_names() {
-        return array('access_key', 'secret_key', 'endpoint', 'bucket_name');
+        return ['access_key', 'secret_key', 'endpoint', 'bucket_name'];
     }
 
     /**
@@ -173,7 +164,7 @@ class repository_s3bucket extends repository {
     public static function instance_config_form($mform) {
         parent::instance_config_form($mform);
         $strrequired = get_string('required');
-        $endpointselect = array(
+        $endpointselect = [
             "s3.amazonaws.com" => "s3.amazonaws.com",
             "s3-external-1.amazonaws.com" => "s3-external-1.amazonaws.com",
             "s3-us-west-2.amazonaws.com" => "s3-us-west-2.amazonaws.com",
@@ -185,7 +176,7 @@ class repository_s3bucket extends repository {
             "s3-ap-southeast-2.amazonaws.com" => "s3-ap-southeast-2.amazonaws.com",
             "s3-ap-northeast-1.amazonaws.com" => "s3-ap-northeast-1.amazonaws.com",
             "s3-sa-east-1.amazonaws.com" => "s3-sa-east-1.amazonaws.com"
-        );
+        ];
         $mform->addElement('passwordunmask', 'access_key', get_string('access_key', 'repository_s3'));
         $mform->setType('access_key', PARAM_RAW_TRIMMED);
         $mform->addElement('password', 'secret_key', get_string('secret_key', 'repository_s3'));
@@ -198,7 +189,7 @@ class repository_s3bucket extends repository {
         $mform->addRule('secret_key', $strrequired, 'required', null, 'client');
         $mform->addRule('bucket_name', $strrequired, 'required', null, 'client');
 
-        $options = array('subdirs' => 1, 'maxfiles' => -1, 'accepted_types' => '*', 'return_types' => FILE_INTERNAL);
+        $options = ['subdirs' => 1, 'maxfiles' => -1, 'accepted_types' => '*', 'return_types' => FILE_INTERNAL];
         $mform->addElement('filemanager', 'attachments', get_string('browse', 'editor'), null, $options);
         $mform->disabledif('attachments', 'access_key', 'eq', '');
         $mform->disabledif('attachments', 'secret_key', 'eq', '');
@@ -216,7 +207,7 @@ class repository_s3bucket extends repository {
     public static function instance_form_validation($mform, $data, $errors) {
         global $DB, $USER;
         $cont = context_user::instance($USER->id);
-        $params = array('contextid' => $cont->id, 'component' => 'user', 'filearea' => 'draft', 'itemid' => $data['attachments']);
+        $params = ['contextid' => $cont->id, 'component' => 'user', 'filearea' => 'draft', 'itemid' => $data['attachments']];
         if ($files = $DB->get_records('files', $params)) {
             $s3 = new S3($data['access_key'], $data['secret_key'], false, $data['endpoint']);
             $fs = get_file_storage();

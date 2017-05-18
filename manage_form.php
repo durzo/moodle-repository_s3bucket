@@ -29,12 +29,11 @@ require_once($CFG->libdir. "/formslib.php");
 class repository_s3bucket_manage_form extends moodleform {
 
     public function definition() {
-        global $PAGE;
         $mform = $this->_form;
 
-        $itemid           = $this->_customdata['draftitemid'];
-        $options          = $this->_customdata['options'];
-        $files            = $this->_customdata['files'];
+        $itemid  = $this->_customdata['draftitemid'];
+        $options = $this->_customdata['options'];
+        $files   = $this->_customdata['files'];
 
         $mform->addElement('hidden', 'itemid');
         $mform->addElement('hidden', 'maxbytes');
@@ -49,10 +48,6 @@ class repository_s3bucket_manage_form extends moodleform {
             $mform->addElement('static', '', '', get_string('nofiles', 'repository_areafilesplus'));
         }
 
-        $this->set_data(array(
-            'itemid' => $itemid,
-            'maxbytes' => $options['maxbytes'],
-            'ctx_id' => $options['context']->id,
-            ));
+        $this->set_data(['itemid' => $itemid, 'maxbytes' => $options['maxbytes'], 'ctx_id' => $options['context']->id]);
     }
 }
