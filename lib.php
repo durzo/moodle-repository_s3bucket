@@ -289,6 +289,13 @@ class repository_s3bucket extends repository {
         }
         return $this->_s3client;
     }
+
+    /**
+     * Fix endpoint string
+     *
+     * @param string endpoint
+     * @return string fixedendpoint
+     */
     private static function fixendpoint($endpoint) {
         if ($endpoint == 's3.amazonaws.com') {
             return 'us-east-1';
