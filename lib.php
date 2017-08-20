@@ -225,17 +225,26 @@ class repository_s3bucket extends repository {
      * @return array errors
      */
     public static function instance_form_validation($mform, $data, $errors) {
+        // TODO: check if user has read access.
         global $DB, $USER;
+        $endpoint = self::fixendpoint($data['endpoint']);
+        $credentials = ['key' => $data['access_key'], 'secret' => $data['secret_key']];
+        $arr = ['version' => 'latest', 'signature_version' => 'v4', 'credentials' => $credentials, 'region' => $endpoint];
+        $s3 = \Aws\S3\S3Client::factory($arr);
+        $s3->registerStreamWrapper();
         $cont = context_user::instance($USER->id);
         $params = ['contextid' => $cont->id, 'component' => 'user', 'filearea' => 'draft', 'itemid' => $data['attachments']];
         if ($files = $DB->get_records('files', $params)) {
-            $s3 = new S3($data['access_key'], $data['secret_key'], false, $data['endpoint']);
             $fs = get_file_storage();
             foreach ($files as $file) {
                 if ($file->filesize > 0) {
+                    $s3 = new S3($data['access_key'], $data['secret_key'], false, $data['endpoint']);
                     $src = $fs->get_file_by_hash($file->pathnamehash);
                     $path = substr($file->filepath, 1) . $file->filename;
                     $result = $s3->putObjectString($src->get_content(), $data['bucket_name'], $path);
+                    if ($result == false) {
+                        $errors['attachments'] = 'v4 upload not yet implemented';
+                    }
                 }
             }
         }
@@ -272,18 +281,20 @@ class repository_s3bucket extends repository {
                 throw new moodle_exception('needaccesskey', 'repository_s3');
             }
             $credentials = ['key' => $accesskey, 'secret' => $this->get_option('secret_key')];
-            $endpoint = $this->get_option('endpoint');
-            $endpoint = str_replace('s3.amazonaws.com', '', $endpoint);
-            $endpoint = str_replace('.amazonaws.com', '', $endpoint);
-            $endpoint = str_replace('s3-', '', $endpoint);
-            if ($endpoint == '') {
-                $endpoint = 'us-east-1';
-            }
-            $arr = ['version' => '2006-03-01', 'credentials' => $credentials, 'region' => $endpoint];
+            $endpoint = self::fixendpoint($this->get_option('endpoint'));
+            $arr = ['version' => 'latest', 'signature_version' => 'v4', 'credentials' => $credentials, 'region' => $endpoint];
             $s = \Aws\S3\S3Client::factory($arr);
             $s->registerStreamWrapper();
             $this->_s3client = $s;
         }
         return $this->_s3client;
+    }
+    private static function fixendpoint($endpoint) {
+        if ($endpoint == 's3.amazonaws.com') {
+            return 'us-east-1';
+        } else {
+            $endpoint = str_replace('.amazonaws.com', '', $endpoint);
+            return str_replace('s3-', '', $endpoint);
+        }
     }
 }
