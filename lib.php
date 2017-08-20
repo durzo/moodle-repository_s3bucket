@@ -27,6 +27,9 @@ defined('MOODLE_INTERNAL') || die;
 require_once($CFG->dirroot . '/repository/lib.php');
 require_once($CFG->dirroot . '/local/aws/sdk/aws-autoloader.php');
 
+use Aws\Common\Credentials\Credentials;
+use Aws\Common\Signature\SignatureV4;
+
 /**
  * This is a repository class used to browse a Amazon S3 bucket.
  *
@@ -36,6 +39,7 @@ require_once($CFG->dirroot . '/local/aws/sdk/aws-autoloader.php');
  */
 class repository_s3bucket extends repository {
 
+    // TODO: implement cache.
     private $_s3client;
 
     /**
@@ -46,6 +50,7 @@ class repository_s3bucket extends repository {
      * @return array the list of files, including some meta infomation
      */
     public function get_listing($path = '.', $page = '') {
+        // TODO: Paging.
         global $OUTPUT;
         $s = $this->create_s3();
         $bucket = $this->get_option('bucket_name');
@@ -58,7 +63,7 @@ class repository_s3bucket extends repository {
         $list['nosearch'] = true;
         $files = [];
         $folders = [];
-        
+
         try {
             $results = $s->getPaginator('ListObjects', ['Bucket' => $bucket, 'Prefix' => $path]);
         } catch (S3Exception $e) {
@@ -70,7 +75,7 @@ class repository_s3bucket extends repository {
                 $e->getMessage()
             );
         }
-        
+
         if ($path === '') {
             $path = '.';
         } else {
@@ -87,7 +92,7 @@ class repository_s3bucket extends repository {
                             'thumbnail' => $OUTPUT->image_url(file_folder_icon(90))->out(false),
                             'thumbnail_height' => 64,
                             'thumbnail_width' => 64,
-                            'path' =>  $object['Key']];
+                            'path' => $object['Key']];
                     }
                 } else {
                     if ($pathinfo['dirname'] == $path or $pathinfo['dirname'] . '//' == $path) {
@@ -95,10 +100,10 @@ class repository_s3bucket extends repository {
                             'title' => $pathinfo['basename'],
                             'size' => $object['Size'],
                             'path' => $object['Key'],
-                            'datemodified' =>  date_timestamp_get($object['LastModified']),
+                            'datemodified' => date_timestamp_get($object['LastModified']),
                             'thumbnail_height' => 64,
                             'thumbnail_width' => 64,
-                            'source' =>  $object['Key'],
+                            'source' => $object['Key'],
                             'thumbnail' => $OUTPUT->image_url(file_extension_icon($object['Key'], 90))->out(false)];
                     }
                 }
@@ -268,7 +273,14 @@ class repository_s3bucket extends repository {
             }
             $credentials = ['key' => $accesskey, 'secret' => $this->get_option('secret_key')];
             $endpoint = $this->get_option('endpoint');
-            $s = \Aws\S3\S3Client::factory(['version' => '2006-03-01', 'credentials' => $credentials, 'region' => 'eu-central-1']);
+            $endpoint = str_replace('s3.amazonaws.com', '', $endpoint);
+            $endpoint = str_replace('.amazonaws.com', '', $endpoint);
+            $endpoint = str_replace('s3-', '', $endpoint);
+            if ($endpoint == '') {
+                $endpoint = 'us-east-1';
+            }
+            $arr = ['version' => '2006-03-01', 'credentials' => $credentials, 'region' => $endpoint];
+            $s = \Aws\S3\S3Client::factory($arr);
             $s->registerStreamWrapper();
             $this->_s3client = $s;
         }
