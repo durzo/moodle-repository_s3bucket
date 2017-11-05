@@ -37,12 +37,12 @@ before_install:
   - nvm use 8.9
   - cd ../..
   - composer create-project -n --no-dev --prefer-source moodlerooms/moodle-plugin-ci ci ^2
-  - moodle-plugin-ci add-plugin --clone https://github.com/catalyst/moodle-local_aws.git
   - export PATH="$(cd ci/bin; pwd):$(cd ci/vendor/bin; pwd):$PATH"
 
 install:
   - moodle-plugin-ci install
-
+  - moodle-plugin-ci add-plugin --clone https://github.com/catalyst/moodle-local_aws.git
+  
 script:
   - moodle-plugin-ci phplint
   - moodle-plugin-ci phpcpd
