@@ -39,7 +39,7 @@ use Aws\Common\Signature\SignatureV4;
  */
 class repository_s3bucket extends repository {
 
-    // TODO: implement cache.
+    /** @var _s3client s3 client object */
     private $_s3client;
 
     /**
@@ -293,7 +293,7 @@ class repository_s3bucket extends repository {
     /**
      * Fix endpoint string
      *
-     * @param string endpoint
+     * @param string endpoint point of entry
      * @return string fixedendpoint
      */
     private static function fixendpoint($endpoint) {
