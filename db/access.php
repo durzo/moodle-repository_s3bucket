@@ -25,22 +25,12 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$capabilities = array(
-
-    'repository/s3bucket:view' => array(
+$capabilities = [
+    'repository/s3bucket:view' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
-        )
-    ),
-    'repository/s3bucket:addinstance' => array(
+        'archetypes' => ['editingteacher' => CAP_ALLOW, 'manager' => CAP_ALLOW]],
+    'repository/s3bucket:addinstance' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
-            'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
-        )
-    )
-);
+        'archetypes' => ['editingteacher' => CAP_ALLOW, 'manager' => CAP_ALLOW]]];
