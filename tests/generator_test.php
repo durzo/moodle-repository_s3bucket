@@ -56,18 +56,14 @@ class repository_s3bucket_generator_testcase extends advanced_testcase {
         }
         $this->assertTrue($caughtexception, "Repository type '$type' should have already been enabled");
     }
-    
+
     /**
      * Installing repository tests
      *
      * @return void
      */
     public function test_install_repository() {
-        global $CFG, $DB;
-
         $this->resetAfterTest(true);
-
-        $syscontext = context_system::instance();
         $repo = 's3bucket';
         $plugintype = new repository_type($repo);
         $pluginid = $plugintype->create(false);
