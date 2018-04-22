@@ -15,18 +15,33 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details
+ * Privacy Subsystem implementation for repository_s3.
  *
  * @package    repository_s3bucket
  * @copyright  2015 Renaat Debleu (www.eWallah.net) (based on work by Dongsheng Cai)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace repository_s3bucket\privacy;
+
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2018042200;
-$plugin->requires  = 2017110800;
-$plugin->component = 'repository_s3bucket';
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '3.4+';
-$plugin->dependencies = ['repository_s3' => ANY_VERSION, 'local_aws' => 2017030100];
+/**
+ * Privacy Subsystem for repository_s3 implementing null_provider.
+ *
+ * @package    repository_s3bucket
+ * @copyright  2015 Renaat Debleu (www.eWallah.net) (based on work by Dongsheng Cai)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class provider implements \core_privacy\local\metadata\null_provider {
+
+    /**
+     * Get the language string identifier with the component's language
+     * file to explain why this plugin stores no data.
+     *
+     * @return  string
+     */
+    public static function get_reason() : string {
+        return 'privacy:metadata';
+    }
+}

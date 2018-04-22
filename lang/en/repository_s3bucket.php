@@ -22,9 +22,11 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['bucketname'] = 'Bucket name';
 $string['configplugin'] = 'Amazon S3 bucket settings';
 $string['pluginname'] = 'Amazon S3 bucket';
 $string['pluginname_help'] = 'Amazon s3 bucket repository';
-$string['bucketname'] = 'Bucket name';
-$string['s3bucket:view'] = 'View Amazon s3 bucket repository';
+$string['privacy:metadata'] = 'The rotated course backup plugin does not store any personal data.';
+$string['privacy:metadata'] = 'The Amazon S3 bucket repository plugin does not store any personal data, but does transmit user data from Moodle to the remote system.';
 $string['s3bucket:addinstance'] = 'Add a new Amazon s3 bucket instance';
+$string['s3bucket:view'] = 'View Amazon s3 bucket repository';
