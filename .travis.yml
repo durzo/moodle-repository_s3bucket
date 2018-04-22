@@ -5,7 +5,7 @@ notifications:
     recipients:
         - rdebleu@eWallah.net
 
-sudo: false
+sudo: required
 
 addons:
   postgresql: "9.6"
@@ -17,14 +17,13 @@ cache:
 
 php:
  - 7.0
- - 7.1
  - 7.2
 
 env:
   - DB=pgsql MOODLE_BRANCH=master
-  - DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE
+  - DB=pgsql MOODLE_BRANCH=MOODLE_34_STABLE
   - DB=mysqli MOODLE_BRANCH=master
-  - DB=mysqli MOODLE_BRANCH=MOODLE_33_STABLE
+  - DB=mysqli MOODLE_BRANCH=MOODLE_34_STABLE
  
 before_install:
   - phpenv config-rm xdebug.ini
@@ -44,8 +43,8 @@ script:
   - moodle-plugin-ci phpmd
   - moodle-plugin-ci codechecker
   - moodle-plugin-ci validate
-  # Free pass - moodle-plugin-ci savepoints
-  # Free pass - moodle-plugin-ci mustache
+  - moodle-plugin-ci savepoints
+  - moodle-plugin-ci mustache
   - moodle-plugin-ci grunt
-  # Not yet implemented - moodle-plugin-ci phpunit
+  - moodle-plugin-ci phpunit
   # Not yet implemented - moodle-plugin-ci behat
