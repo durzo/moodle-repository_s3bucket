@@ -293,7 +293,7 @@ class repository_s3bucket extends repository {
     /**
      * Fix endpoint string
      *
-     * @param string endpoint point of entry
+     * @param string $endpoint point of entry
      * @return string fixedendpoint
      */
     private static function fixendpoint($endpoint) {
