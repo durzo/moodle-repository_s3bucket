@@ -53,9 +53,9 @@ class repository_s3bucket_manage_form extends moodleform {
             foreach ($files as $file) {
                 $mform->addElement('checkbox', 'deletefile['.$file.']', '', $file);
             }
-            $mform->addElement('submit', 'delete', get_string('deleteselected', 'repository_areafilesplus'));
+            $mform->addElement('submit', 'delete', get_string('deleteselected'));
         } else {
-            $mform->addElement('static', '', '', get_string('nofiles', 'repository_areafilesplus'));
+            $mform->addElement('static', '', '', get_string('nofiles', 'mod_assign'));
         }
 
         $this->set_data(['itemid' => $itemid, 'maxbytes' => $options['maxbytes'], 'ctx_id' => $options['context']->id]);

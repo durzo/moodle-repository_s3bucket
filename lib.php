@@ -266,7 +266,7 @@ class repository_s3bucket extends repository {
      * @return bool
      */
     public function contains_private_data() {
-        return true;
+        return false;
     }
 
     /**
