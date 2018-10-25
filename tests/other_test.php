@@ -36,7 +36,7 @@ defined('MOODLE_INTERNAL') || die();
  */
 class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testcase {
 
-     /**
+    /**
      * Test privacy.
      */
     public function test_privacy() {
@@ -66,11 +66,11 @@ class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testc
         }
     }
 
-/**
+    /**
      * Test form.
      */
     public function test_form() {
-        global $CFG, $USER;
+        global $CFG;
         require_once($CFG->dirroot . '/repository/s3bucket/manage_form.php');
         $this->resetAfterTest(true);
         $this->SetAdminUser();
@@ -81,8 +81,9 @@ class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testc
         $page->set_pagetype('course-view');
         $page->set_url('/repository/s3bucket/manage.php');
         $form = new class extends repository_s3bucket_manage_form {
+
             /** @var stdClass Instance. */
-            public $draftid;
+            private $draft;
             /**
              * Form definition.
              */
@@ -90,16 +91,14 @@ class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testc
                 $this->accesskey = 'ABC';
                 $context = context_system::instance();
                 $fs = get_file_storage();
-                $this->draftid = file_get_unused_draft_itemid();
+                $this->draft = file_get_unused_draft_itemid();
                 $filerecord = ['component' => 'system', 'filearea' => 'draft', 'contextid' => $context->id,
-                               'itemid' => $this->draftid, 'filename' => 'filename.jpg', 'filepath' => '/'];
+                               'itemid' => $this->draft, 'filename' => 'filename.jpg', 'filepath' => '/'];
                 $fs->create_file_from_string($filerecord, 'test content');
-                $files = $fs->get_directory_files($context->id, 'sytem', 'draft', $this->draftid, '/', false, false);
-                $this->_customdata['draftitemid'] = $this->draftid;
+                $files = $fs->get_directory_files($context->id, 'sytem', 'draft', $this->draft, '/', false, false);
+                $this->_customdata['draftitemid'] = $this->draft;
                 $this->_customdata['options'] = ['subdirs' => 0, 'maxbytes' => 0, 'maxfiles' => -1, 'context' => $context];
                 $this->_customdata['files'] = $files;
-                //parent::definition();
-                
             }
             /**
              * Returns form reference
@@ -110,17 +109,24 @@ class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testc
                 $mform->_flagSubmitted = true;
                 return $mform;
             }
+
+            /**
+             * Returns draftitemid
+             * @return int draft item
+             */
+            public function draftid() {
+                return $this->draft;
+            }
         };
         $mform = $form->getform();
         $out = repository_s3bucket::instance_config_form($mform);
         $this->assertEquals(null, $out);
-        $data = ['endpoint' => 's3.amazonaws.com', 'secret_key' => 'secret', 'access_key' => 'abc', 'attachments' => $form->draftid];
+        $data = ['endpoint' => 's3.amazonaws.com', 'secret_key' => 'secret',
+                 'access_key' => 'abc', 'attachments' => $form->draftid()];
         $out = repository_s3bucket::instance_form_validation($mform, $data, [1 => '2']);
-        $data = ['endpoint' => 's3.eu-central-1.amazonaws.com', 'secret_key' => 'secret', 'access_key' => 'abc', 'attachments' => $form->draftid];
+        $data = ['endpoint' => 's3.eu-central-1.amazonaws.com', 'secret_key' => 'secret',
+                 'access_key' => 'abc', 'attachments' => $form->draftid()];
         $out = repository_s3bucket::instance_form_validation($mform, $data, [1 => '2']);
-        
-          //print_object($out);
         $this->assertEquals([1 => '2'], $out);
-        //$qform = new \repository_s3bucket_manage_form($mform, ['options' => $options, 'draftitemid' => $draftid, 'files' => $filenames]);
     }
 }
