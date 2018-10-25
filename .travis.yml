@@ -20,10 +20,15 @@ php:
  - 7.2
 
 env:
-  - DB=pgsql MOODLE_BRANCH=master
   - DB=pgsql MOODLE_BRANCH=MOODLE_34_STABLE
-  - DB=mysqli MOODLE_BRANCH=master
+  - DB=pgsql MOODLE_BRANCH=MOODLE_35_STABLE
+  - DB=pgsql MOODLE_BRANCH=master
   - DB=mysqli MOODLE_BRANCH=MOODLE_34_STABLE
+  - DB=mysqli MOODLE_BRANCH=MOODLE_35_STABLE
+  - DB=mysqli MOODLE_BRANCH=master
+  - DB=mariadb MOODLE_BRANCH=MOODLE_34_STABLE
+  - DB=mariadb MOODLE_BRANCH=MOODLE_35_STABLE
+  - DB=mariadb MOODLE_BRANCH=master
 
 before_install:
   - phpenv config-rm xdebug.ini
@@ -46,5 +51,5 @@ script:
   - moodle-plugin-ci savepoints
   - moodle-plugin-ci mustache
   - moodle-plugin-ci grunt
-  - moodle-plugin-ci phpunit
+  - moodle-plugin-ci phpunit --coverage-text
   # Not yet implemented - moodle-plugin-ci behat
