@@ -51,4 +51,9 @@ script:
   - moodle-plugin-ci mustache
   - moodle-plugin-ci grunt
   - moodle-plugin-ci phpunit --coverage-text
-  # Not yet implemented - moodle-plugin-ci behat
+  - moodle-plugin-ci phpunit --coverage-clover
+  #- moodle-plugin-ci behat
+  #- moodle-plugin-ci behat --profile chrome
+
+after_success:
+  - moodle-plugin-ci coveralls-upload
