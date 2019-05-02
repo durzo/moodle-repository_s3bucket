@@ -189,9 +189,9 @@ class repository_s3bucket extends repository {
         $endpointselect['s3.amazonaws.com'] = 's3.amazonaws.com';
         $all = require_once($CFG->dirroot . '/local/aws/sdk/Aws/data/endpoints.json.php');
         $endpoints = $all['partitions'][0]['regions'];
-        foreach($endpoints as $key => $value) {
+        foreach ($endpoints as $key => $value) {
             $endpointselect[$key] = $value['description'];
-        } 
+        }
         $mform->addElement('passwordunmask', 'access_key', get_string('access_key', 'repository_s3'));
         $mform->setType('access_key', PARAM_RAW_TRIMMED);
         $mform->addElement('password', 'secret_key', get_string('secret_key', 'repository_s3'));
