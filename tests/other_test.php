@@ -24,7 +24,9 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-
+global $CFG;
+require_once($CFG->libdir. "/formslib.php");
+require_once($CFG->dirroot . '/repository/s3bucket/manage_form.php');
 
 /**
  * Other tests.
@@ -70,8 +72,6 @@ class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testc
      * Test form.
      */
     public function test_form() {
-        global $CFG;
-        require_once($CFG->dirroot . '/repository/s3bucket/manage_form.php');
         $this->resetAfterTest(true);
         $this->SetAdminUser();
         $context = context_system::instance();
@@ -80,44 +80,7 @@ class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testc
         $page->set_pagelayout('standard');
         $page->set_pagetype('course-view');
         $page->set_url('/repository/s3bucket/manage.php');
-        $form = new class extends repository_s3bucket_manage_form {
-
-            /** @var stdClass Instance. */
-            private $draft;
-            /**
-             * Form definition.
-             */
-            public function definition() {
-                $this->accesskey = 'ABC';
-                $context = context_system::instance();
-                $fs = get_file_storage();
-                $this->draft = file_get_unused_draft_itemid();
-                $filerecord = ['component' => 'system', 'filearea' => 'draft', 'contextid' => $context->id,
-                               'itemid' => $this->draft, 'filename' => 'filename.jpg', 'filepath' => '/'];
-                $fs->create_file_from_string($filerecord, 'test content');
-                $files = $fs->get_directory_files($context->id, 'sytem', 'draft', $this->draft, '/', false, false);
-                $this->_customdata['draftitemid'] = $this->draft;
-                $this->_customdata['options'] = ['subdirs' => 0, 'maxbytes' => 0, 'maxfiles' => -1, 'context' => $context];
-                $this->_customdata['files'] = $files;
-            }
-            /**
-             * Returns form reference
-             * @return MoodleQuickForm
-             */
-            public function getform() {
-                $mform = $this->_form;
-                $mform->_flagSubmitted = true;
-                return $mform;
-            }
-
-            /**
-             * Returns draftitemid
-             * @return int draft item
-             */
-            public function draftid() {
-                return $this->draft;
-            }
-        };
+        $form = new repository_s3bucket_testform();
         $mform = $form->getform();
         $out = repository_s3bucket::instance_config_form($mform);
         $this->assertEquals(null, $out);
@@ -128,5 +91,52 @@ class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testc
                  'access_key' => 'abc', 'attachments' => $form->draftid()];
         $out = repository_s3bucket::instance_form_validation($mform, $data, [1 => '2']);
         $this->assertEquals([1 => '2'], $out);
+    }
+}
+
+/**
+ * Test form.
+ *
+ * @package    repository_s3bucket
+ * @copyright  2018 iplusacademy.org
+ * @author     Renaat Debleu <info@eWallah.net>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class repository_s3bucket_testform extends repository_s3bucket_manage_form {
+
+    /** @var stdClass Instance. */
+    private $draft;
+    /**
+     * Form definition.
+     */
+    public function definition() {
+        $this->accesskey = 'ABC';
+        $context = context_system::instance();
+        $fs = get_file_storage();
+        $this->draft = file_get_unused_draft_itemid();
+        $filerecord = ['component' => 'system', 'filearea' => 'draft', 'contextid' => $context->id,
+                       'itemid' => $this->draft, 'filename' => 'filename.jpg', 'filepath' => '/'];
+        $fs->create_file_from_string($filerecord, 'test content');
+        $files = $fs->get_directory_files($context->id, 'sytem', 'draft', $this->draft, '/', false, false);
+        $this->_customdata['draftitemid'] = $this->draft;
+        $this->_customdata['options'] = ['subdirs' => 0, 'maxbytes' => 0, 'maxfiles' => -1, 'context' => $context];
+        $this->_customdata['files'] = $files;
+    }
+    /**
+     * Returns form reference
+     * @return MoodleQuickForm
+     */
+    public function getform() {
+        $mform = $this->_form;
+        $mform->_flagSubmitted = true;
+        return $mform;
+    }
+
+    /**
+     * Returns draftitemid
+     * @return int draft item
+     */
+    public function draftid() {
+        return $this->draft;
     }
 }

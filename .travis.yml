@@ -8,7 +8,12 @@ notifications:
 sudo: required
 
 addons:
+  firefox: "47.0.1"
   postgresql: "9.6"
+  apt:
+    packages:
+      - openjdk-8-jre-headless
+      - chromium-chromedriver
 
 cache:
   directories:
@@ -52,8 +57,8 @@ script:
   - moodle-plugin-ci grunt
   - moodle-plugin-ci phpunit --coverage-text
   - moodle-plugin-ci phpunit --coverage-clover
-  #- moodle-plugin-ci behat
-  #- moodle-plugin-ci behat --profile chrome
+  - moodle-plugin-ci behat
+  - moodle-plugin-ci behat --profile chrome
 
 after_success:
   - moodle-plugin-ci coveralls-upload
