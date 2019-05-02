@@ -182,21 +182,16 @@ class repository_s3bucket extends repository {
      * @param moodleform $mform Moodle form (passed by reference)
      */
     public static function instance_config_form($mform) {
+        global $CFG;
         parent::instance_config_form($mform);
         $strrequired = get_string('required');
-        $endpointselect = [
-            "s3.amazonaws.com" => "s3.amazonaws.com",
-            "s3-external-1.amazonaws.com" => "s3-external-1.amazonaws.com",
-            "s3-us-west-2.amazonaws.com" => "s3-us-west-2.amazonaws.com",
-            "s3-us-west-1.amazonaws.com" => "s3-us-west-1.amazonaws.com",
-            "s3-eu-west-1.amazonaws.com" => "s3-eu-west-1.amazonaws.com",
-            "s3.eu-central-1.amazonaws.com" => "s3.eu-central-1.amazonaws.com",
-            "s3-eu-central-1.amazonaws.com" => "s3-eu-central-1.amazonaws.com",
-            "s3-ap-southeast-1.amazonaws.com" => "s3-ap-southeast-1.amazonaws.com",
-            "s3-ap-southeast-2.amazonaws.com" => "s3-ap-southeast-2.amazonaws.com",
-            "s3-ap-northeast-1.amazonaws.com" => "s3-ap-northeast-1.amazonaws.com",
-            "s3-sa-east-1.amazonaws.com" => "s3-sa-east-1.amazonaws.com"
-        ];
+        $endpointselect = [];
+        $endpointselect['s3.amazonaws.com'] = 's3.amazonaws.com';
+        $all = require_once($CFG->dirroot . '/local/aws/sdk/Aws/data/endpoints.json.php');
+        $endpoints = $all['partitions'][0]['regions'];
+        foreach($endpoints as $key => $value) {
+            $endpointselect[$key] = $value['description'];
+        } 
         $mform->addElement('passwordunmask', 'access_key', get_string('access_key', 'repository_s3'));
         $mform->setType('access_key', PARAM_RAW_TRIMMED);
         $mform->addElement('password', 'secret_key', get_string('secret_key', 'repository_s3'));
@@ -238,7 +233,6 @@ class repository_s3bucket extends repository {
             $fs = get_file_storage();
             foreach ($files as $file) {
                 if ($file->filesize > 0) {
-                    $s3 = new S3($data['access_key'], $data['secret_key'], false, $data['endpoint']);
                     $src = $fs->get_file_by_hash($file->pathnamehash);
                     $path = substr($file->filepath, 1) . $file->filename;
                     $result = $s3->putObjectString($src->get_content(), $data['bucket_name'], $path);
