@@ -187,7 +187,7 @@ class repository_s3bucket extends repository {
         $strrequired = get_string('required');
         $endpointselect = [];
         $endpointselect['s3.amazonaws.com'] = 's3.amazonaws.com';
-        $all = require_once($CFG->dirroot . '/local/aws/sdk/Aws/data/endpoints.json.php');
+        $all = require($CFG->dirroot . '/local/aws/sdk/Aws/data/endpoints.json.php');
         $endpoints = $all['partitions'][0]['regions'];
         foreach ($endpoints as $key => $value) {
             $endpointselect[$key] = $value['description'];
