@@ -55,10 +55,9 @@ script:
   - moodle-plugin-ci savepoints
   - moodle-plugin-ci mustache
   - moodle-plugin-ci grunt
-  - if [ "$TRAVIS_BRANCH" != "master" ]; then moodle-plugin-ci phpunit --coverage-text
-  - if [ "$TRAVIS_BRANCH" != "master" ]; then moodle-plugin-ci phpunit --coverage-clover
+  - if [ "$TRAVIS_BRANCH" = "master" ]; then moodle-plugin-ci phpunit else moodle-plugin-ci --coverage-clover; fi
   - moodle-plugin-ci behat
   - moodle-plugin-ci behat --profile chrome
 
 after_success:
-  - if [ "$TRAVIS_BRANCH" != "master" ]; then moodle-plugin-ci coveralls-upload
+  - if [ "$TRAVIS_BRANCH" = "master" ]; then moodle-plugin-ci coveralls-upload; fi
