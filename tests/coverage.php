@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * Code coverage.
  *
@@ -23,14 +25,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Phpunit coverage info.
  *
- * @package    repository_s3bucket
  * @copyright  2018 iplusacademy.org
- * @author     Renaat Debleu <info@eWallah.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 return new class extends phpunit_coverage_info {
@@ -39,13 +37,13 @@ return new class extends phpunit_coverage_info {
         'classes/privacy',
         'lib.php',
     ];
- 
+
     /** @var array The list of files relative to the plugin root to whitelist in coverage generation. */
     protected $whitelistfiles = [];
- 
+
     /** @var array The list of folders relative to the plugin root to excludelist in coverage generation. */
     protected $excludelistfolders = [];
- 
+
     /** @var array The list of files relative to the plugin root to excludelist in coverage generation. */
     protected $excludelistfiles = [];
 };
