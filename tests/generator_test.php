@@ -30,6 +30,7 @@ defined('MOODLE_INTERNAL') || die();
  * @package    repository_s3bucket
  * @copyright  2017 Renaat Debleu (www.eWallah.net) (based on work by Dongsheng Cai)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass repository_s3bucket
  */
 class repository_s3bucket_generator_testcase extends advanced_testcase {
 

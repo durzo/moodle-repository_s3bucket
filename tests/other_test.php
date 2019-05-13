@@ -35,11 +35,13 @@ require_once($CFG->dirroot . '/repository/s3bucket/manage_form.php');
  * @copyright  2018 iplusacademy.org
  * @author     Renaat Debleu <info@eWallah.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass repository_s3bucket
  */
 class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testcase {
 
     /**
      * Test privacy.
+     * @covers repository_s3bucket\privacy\provider
      */
     public function test_privacy() {
         $privacy = new repository_s3bucket\privacy\provider();
