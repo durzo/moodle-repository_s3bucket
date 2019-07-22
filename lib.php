@@ -50,7 +50,6 @@ class repository_s3bucket extends repository {
      * @return array the list of files, including some meta infomation
      */
     public function get_listing($path = '.', $page = '') {
-        // TODO: Paging.
         global $OUTPUT;
         $s = $this->create_s3();
         $bucket = $this->get_option('bucket_name');
@@ -192,14 +191,25 @@ class repository_s3bucket extends repository {
         foreach ($endpoints as $key => $value) {
             $endpointselect[$key] = $value['description'];
         }
+
+        $all = require($CFG->dirroot . '/local/aws/sdk/Aws/data/s3/2006-03-01/api-2.json.php');
+        $stors = $all['shapes']['ObjectStorageClass']['enum'];
+        $storages = [];
+        if ($stors) {
+            foreach ($stors as $stor) {
+                $storages[$stor] = $stor;
+            }
+        }
         $mform->addElement('passwordunmask', 'access_key', get_string('access_key', 'repository_s3'));
         $mform->setType('access_key', PARAM_RAW_TRIMMED);
-        $mform->addElement('password', 'secret_key', get_string('secret_key', 'repository_s3'));
+        $mform->addElement('passwordunmask', 'secret_key', get_string('secret_key', 'repository_s3'));
         $mform->setType('secret_key', PARAM_RAW_TRIMMED);
         $mform->addElement('text', 'bucket_name', get_string('bucketname', 'repository_s3bucket'));
         $mform->setType('bucket_name', PARAM_RAW_TRIMMED);
         $mform->addElement('select', 'endpoint', get_string('endpoint', 'repository_s3'), $endpointselect);
         $mform->setDefault('endpoint', 's3.amazonaws.com');
+        $mform->addElement('select', 'storageclass', get_string('storageclass', 'repository_s3bucket'), $storages);
+        $mform->setDefault('storageclass', 'ONEZONE_IA');
         $mform->addRule('access_key', $strrequired, 'required', null, 'client');
         $mform->addRule('secret_key', $strrequired, 'required', null, 'client');
         $mform->addRule('bucket_name', $strrequired, 'required', null, 'client');
@@ -234,10 +244,16 @@ class repository_s3bucket extends repository {
             foreach ($files as $file) {
                 if ($file->filesize > 0) {
                     $src = $fs->get_file_by_hash($file->pathnamehash);
-                    $path = substr($file->filepath, 1) . $file->filename;
-                    $result = $s3->putObjectString($src->get_content(), $data['bucket_name'], $path);
+                    $object = [
+                        'ACL' => 'private',
+                        'Body' => $src->get_content(),
+                        'Bucket' => $data['bucket_name'],
+                        'Key' => substr($file->filepath, 1) . $file->filename,
+                        'StorageClass' => 'ONEZONE_IA'
+                    ];
+                    $result = $s3->putObject($object);
                     if ($result == false) {
-                        $errors['attachments'] = 'v4 upload not yet implemented';
+                        $errors['attachments'] = 'Something went wrong during the upload';
                     }
                 }
             }

@@ -30,3 +30,4 @@ $string['privacy:metadata'] = 'The rotated course backup plugin does not store a
 $string['privacy:metadata'] = 'The Amazon S3 bucket repository plugin does not store any personal data, but does transmit user data from Moodle to the remote system.';
 $string['s3bucket:addinstance'] = 'Add a new Amazon s3 bucket instance';
 $string['s3bucket:view'] = 'View Amazon s3 bucket repository';
+$string['storageclass'] = 'Storage class';
