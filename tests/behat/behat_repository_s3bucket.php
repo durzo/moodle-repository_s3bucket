@@ -47,7 +47,7 @@ class behat_repository_s3bucket extends behat_base {
         global $DB;
         if (!$DB->record_exists('repository', ['type' => $repository])) {
             $DB->insert_record('repository', (object) ['type' => $repository, 'visible' => 1]);
-            purge_caches();
+            // purge_caches();
         }
     }
 }

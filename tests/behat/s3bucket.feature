@@ -14,11 +14,8 @@ Feature: S3 bucket repository should throw no errors
       | user | course | role |
       | student | C1 | student |
       | teacher | C1 | editingteacher |
-    And I log in as "admin"
-    And I navigate to "Plugins > Repositories > Manage repositories" in site administration
-    And I should see "Amazon S3 bucket"
-    And I should not see "0 Site-wide common instance(s)"
     And I enable repository "s3bucket"
+    And I log in as "admin"
     And I navigate to "Plugins > Repositories > Amazon S3 bucket" in site administration
     And I click on "Create a repository instance" "button"
     And I set the following fields to these values:
@@ -29,10 +26,7 @@ Feature: S3 bucket repository should throw no errors
     And I set the field "Access key" to "KeleiqoakaKEHS"
     And I set the field "Secret key" to "KeleiqoakaKEHS"
     And I click on "Save" "button"
-    Then I should not see "Required"
-    And I should see "Allow users to add a repository instance into the course"
-    And I should see "Allow users to add a repository instance into the user context"
-    When I click on "Allow users to add a repository instance into the course" "checkbox"
+    And I click on "Allow users to add a repository instance into the course" "checkbox"
     And I click on "Allow users to add a repository instance into the user context" "checkbox"
     And I click on "Save" "button"
 
@@ -74,4 +68,3 @@ Feature: S3 bucket repository should throw no errors
     Then I should not see "Amazon S3 bucket"
     And I am on "Course 1" course homepage
     And I should not see "Amazon S3 bucket"
-    
