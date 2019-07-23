@@ -25,7 +25,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
-require_once($CFG->libdir. "/formslib.php");
+require_once($CFG->libdir. '/formslib.php');
+require_once($CFG->dirroot . '/repository/lib.php');
 require_once($CFG->dirroot . '/repository/s3bucket/manage_form.php');
 
 /**
@@ -58,7 +59,7 @@ class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testc
         $this->assertEquals('Amazon S3 bucket', $repo->get_name());
         $this->assertTrue($repo->check_login());
         $this->assertFalse($repo->contains_private_data());
-        $this->assertCount(4, $repo->get_instance_option_names());
+        $this->assertCount(5, $repo->get_instance_option_names());
         $this->assertEquals('Amazon S3: /bucket', $repo->get_file_source_info('bucket'));
         $this->assertFalse($repo->global_search());
         $this->assertEquals(2, $repo->supported_returntypes());
@@ -91,6 +92,10 @@ class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testc
         $out = repository_s3bucket::instance_form_validation($mform, $data, [1 => '2']);
         $data = ['endpoint' => 's3.eu-central-1.amazonaws.com', 'secret_key' => 'secret',
                  'access_key' => 'abc', 'attachments' => $form->draftid()];
+        $out = repository_s3bucket::instance_form_validation($mform, $data, [1 => '2']);
+        $this->assertEquals([1 => '2'], $out);
+        $para = ['plugin' => '$s3bucket', 'typeid' => '', 'instance' => null, 'contextid' => $context->id];
+        $mform = new repository_instance_form('', $para);
         $out = repository_s3bucket::instance_form_validation($mform, $data, [1 => '2']);
         $this->assertEquals([1 => '2'], $out);
     }

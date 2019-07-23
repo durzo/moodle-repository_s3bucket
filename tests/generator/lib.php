@@ -50,6 +50,9 @@ class repository_s3bucket_generator extends testing_repository_generator {
         if (!isset($record['endpoint'])) {
             $record['endpoint'] = 'endpoint';
         }
+        if (!isset($record['storageclass'])) {
+            $record['storageclass'] = 'storageclass';
+        }
         return $record;
     }
 }

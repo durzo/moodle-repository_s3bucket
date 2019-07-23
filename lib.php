@@ -172,7 +172,7 @@ class repository_s3bucket extends repository {
      * @return array
      */
     public static function get_instance_option_names() {
-        return ['access_key', 'secret_key', 'endpoint', 'bucket_name'];
+        return ['access_key', 'secret_key', 'endpoint', 'bucket_name', 'storageclass'];
     }
 
     /**
@@ -209,7 +209,7 @@ class repository_s3bucket extends repository {
         $mform->addElement('select', 'endpoint', get_string('endpoint', 'repository_s3'), $endpointselect);
         $mform->setDefault('endpoint', 's3.amazonaws.com');
         $mform->addElement('select', 'storageclass', get_string('storageclass', 'repository_s3bucket'), $storages);
-        $mform->setDefault('storageclass', 'ONEZONE_IA');
+        $mform->setDefault('storageclass', 'STANDARD');
         $mform->addRule('access_key', $strrequired, 'required', null, 'client');
         $mform->addRule('secret_key', $strrequired, 'required', null, 'client');
         $mform->addRule('bucket_name', $strrequired, 'required', null, 'client');
@@ -238,22 +238,24 @@ class repository_s3bucket extends repository {
         $s3 = \Aws\S3\S3Client::factory($arr);
         $s3->registerStreamWrapper();
         $cont = context_user::instance($USER->id);
-        $params = ['contextid' => $cont->id, 'component' => 'user', 'filearea' => 'draft', 'itemid' => $data['attachments']];
-        if ($files = $DB->get_records('files', $params)) {
-            $fs = get_file_storage();
-            foreach ($files as $file) {
-                if ($file->filesize > 0) {
-                    $src = $fs->get_file_by_hash($file->pathnamehash);
-                    $object = [
-                        'ACL' => 'private',
-                        'Body' => $src->get_content(),
-                        'Bucket' => $data['bucket_name'],
-                        'Key' => substr($file->filepath, 1) . $file->filename,
-                        'StorageClass' => 'ONEZONE_IA'
-                    ];
-                    $result = $s3->putObject($object);
-                    if ($result == false) {
-                        $errors['attachments'] = 'Something went wrong during the upload';
+        if (isset($data['attachments'])) {
+            $params = ['contextid' => $cont->id, 'component' => 'user', 'filearea' => 'draft', 'itemid' => $data['attachments']];
+            if ($files = $DB->get_records('files', $params)) {
+                $fs = get_file_storage();
+                foreach ($files as $file) {
+                    if ($file->filesize > 0) {
+                        $src = $fs->get_file_by_hash($file->pathnamehash);
+                        $object = [
+                            'ACL' => 'private',
+                            'Body' => $src->get_content(),
+                            'Bucket' => $data['bucket_name'],
+                            'Key' => substr($file->filepath, 1) . $file->filename,
+                            'StorageClass' => $data['storageclass']
+                        ];
+                        $result = $s3->putObject($object);
+                        if ($result == false) {
+                            $errors['attachments'] = 'Something went wrong during the upload';
+                        }
                     }
                 }
             }
