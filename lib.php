@@ -53,26 +53,15 @@ class repository_s3bucket extends repository {
         global $OUTPUT;
         $s = $this->create_s3();
         $bucket = $this->get_option('bucket_name');
-        $list = [];
-        $list['list'] = [];
-        $list['path'] = [['name' => $bucket, 'path' => $path]];
-        $list['manage'] = false;
-        $list['dynload'] = true;
-        $list['nologin'] = true;
-        $list['nosearch'] = true;
+        $list = ['list' => [], 'path' => [['name' => $bucket, 'path' => $path]], 'manage' => false,
+                 'dynload' => true, 'nologin' => true, 'nosearch' => true];
         $files = [];
         $folders = [];
 
         try {
             $results = $s->getPaginator('ListObjects', ['Bucket' => $bucket, 'Prefix' => $path]);
         } catch (S3Exception $e) {
-            throw new moodle_exception(
-                'errorwhilecommunicatingwith',
-                'repository',
-                '',
-                $this->get_name(),
-                $e->getMessage()
-            );
+            throw new moodle_exception('errorwhilecommunicatingwith', 'repository', '', $this->get_name(), $e->getMessage());
         }
 
         if ($path === '') {
@@ -126,13 +115,7 @@ class repository_s3bucket extends repository {
         try {
             $s->getObject(['Bucket' => $bucket, 'Key' => $filepath, 'SaveAs' => $path]);
         } catch (S3Exception $e) {
-            throw new moodle_exception(
-                'errorwhilecommunicatingwith',
-                'repository',
-                '',
-                $this->get_name(),
-                $e->getMessage()
-            );
+            throw new moodle_exception('errorwhilecommunicatingwith', 'repository', '', $this->get_name(), $e->getMessage());
         }
         return ['path' => $path];
     }
@@ -252,9 +235,10 @@ class repository_s3bucket extends repository {
                             'Key' => substr($file->filepath, 1) . $file->filename,
                             'StorageClass' => $data['storageclass']
                         ];
-                        $result = $s3->putObject($object);
-                        if ($result == false) {
-                            $errors['attachments'] = 'Something went wrong during the upload';
+                        try {
+                            $s3->putObject($object);
+                        } catch (S3Exception $e) {
+                            $errors[] = get_string('errorwhilecommunicatingwith', 'repository');
                         }
                     }
                 }

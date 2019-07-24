@@ -24,9 +24,11 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
+
 global $CFG;
 require_once($CFG->libdir. '/formslib.php');
 require_once($CFG->dirroot . '/repository/lib.php');
+require_once($CFG->dirroot . '/repository/s3bucket/lib.php');
 require_once($CFG->dirroot . '/repository/s3bucket/manage_form.php');
 
 /**
@@ -50,34 +52,86 @@ class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testc
     }
 
     /**
-     * Test class.
+     * Test class in system context.
      */
     public function test_class() {
         $this->resetAfterTest(true);
-        $this->SetAdminUser();
-        $repo = new \repository_s3bucket(2);
+        $repo = new \repository_s3bucket(1);
+        $repo->set_option(['endpoint' => 's3.eu-central-1.amazonaws.com', 'secret_key' => 'secret', 'bucket_name' => 'test',
+                           'storageclass' => 'STANDARD', 'access_key' => 'abc']);
         $this->assertEquals('Amazon S3 bucket', $repo->get_name());
         $this->assertTrue($repo->check_login());
         $this->assertFalse($repo->contains_private_data());
         $this->assertCount(5, $repo->get_instance_option_names());
-        $this->assertEquals('Amazon S3: /bucket', $repo->get_file_source_info('bucket'));
+        $this->assertEquals('Amazon S3: test/filename.txt', $repo->get_file_source_info('filename.txt'));
         $this->assertFalse($repo->global_search());
         $this->assertEquals(2, $repo->supported_returntypes());
+        $this->SetAdminUser();
         $this->assertEquals(2, $repo->check_capability());
-        try {
-            $repo->get_listing();
-        } catch (moodle_exception $e) {
-            $this->assertEquals('Access key must be provided', $e->getMessage());
-        }
+        $this->expectException('Aws\S3\Exception\S3Exception');
+        $repo->get_listing();
+    }
+
+    /**
+     * Test empty in course context.
+     */
+    public function test_empty() {
+        $this->resetAfterTest(true);
+        $this->SetAdminUser();
+        $course = $this->getDataGenerator()->create_course();
+        $context = context_course::instance($course->id);
+        $repo = new \repository_s3bucket(2, $context);
+        $this->expectException('moodle_exception');
+        $repo->get_listing();
+    }
+
+    /**
+     * Test get file in user context.
+     */
+    public function test_getfile() {
+        global $USER;
+        $this->resetAfterTest(true);
+        $this->SetAdminUser();
+        $context = context_user::instance($USER->id);
+        $repo = new \repository_s3bucket($USER->id, $context);
+        $repo->set_option(['endpoint' => 's3.eu-central-1.amazonaws.com', 'secret_key' => 'secret', 'bucket_name' => 'test',
+                           'storageclass' => 'STANDARD', 'access_key' => 'abc']);
+        $draft = file_get_unused_draft_itemid();
+        $filerecord = ['component' => 'user', 'filearea' => 'draft', 'contextid' => $context->id,
+                       'itemid' => $draft, 'filename' => 'filename.txt', 'filepath' => '/'];
+        get_file_storage()->create_file_from_string($filerecord, 'test content');
+        $this->expectException('Aws\S3\Exception\S3Exception');
+        $repo->get_file('/filename.txt');
+    }
+
+    /**
+     * Test instance form.
+     */
+    public function test_instance_form() {
+        global $USER;
+        $this->resetAfterTest(true);
+        $this->SetAdminUser();
+        $context = context_user::instance($USER->id);
+        $para = ['plugin' => '$s3bucket', 'typeid' => '', 'instance' => null, 'contextid' => $context->id];
+        $mform = new repository_instance_form('', $para);
+        $data = ['endpoint' => 's3.amazonaws.com', 'secret_key' => 'secret', 'bucket_name' => 'test',
+                 'storageclass' => 'STANDARD', 'access_key' => 'abc', 'attachments' => null];
+        $this->assertEquals([], repository_s3bucket::instance_form_validation($mform, $data, []));
+        ob_start();
+        $mform->display();
+        $out = ob_get_clean();
+        $this->assertContains('There are required fields in this form marked', $out);
     }
 
     /**
      * Test form.
+     * @coversDefaultClass repository_s3bucket/manage_form
      */
     public function test_form() {
+        global $USER;
         $this->resetAfterTest(true);
         $this->SetAdminUser();
-        $context = context_system::instance();
+        $context = context_user::instance($USER->id);
         $page = new moodle_page();
         $page->set_context($context);
         $page->set_pagelayout('standard');
@@ -85,19 +139,22 @@ class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testc
         $page->set_url('/repository/s3bucket/manage.php');
         $form = new repository_s3bucket_testform();
         $mform = $form->getform();
-        $out = repository_s3bucket::instance_config_form($mform);
-        $this->assertEquals(null, $out);
-        $data = ['endpoint' => 's3.amazonaws.com', 'secret_key' => 'secret',
-                 'access_key' => 'abc', 'attachments' => $form->draftid()];
-        $out = repository_s3bucket::instance_form_validation($mform, $data, [1 => '2']);
-        $data = ['endpoint' => 's3.eu-central-1.amazonaws.com', 'secret_key' => 'secret',
-                 'access_key' => 'abc', 'attachments' => $form->draftid()];
-        $out = repository_s3bucket::instance_form_validation($mform, $data, [1 => '2']);
-        $this->assertEquals([1 => '2'], $out);
-        $para = ['plugin' => '$s3bucket', 'typeid' => '', 'instance' => null, 'contextid' => $context->id];
-        $mform = new repository_instance_form('', $para);
-        $out = repository_s3bucket::instance_form_validation($mform, $data, [1 => '2']);
-        $this->assertEquals([1 => '2'], $out);
+        repository_s3bucket::instance_config_form($mform);
+        ob_start();
+        $mform->display();
+        $out = ob_get_clean();
+        $this->assertContains('There are required fields', $out);
+        $data = ['endpoint' => 's3.eu-central-1.amazonaws.com', 'secret_key' => 'secret', 'bucket_name' => 'test',
+                 'storageclass' => 'STANDARD', 'access_key' => 'abc', 'attachments' => null];
+        $this->assertEquals([], repository_s3bucket::instance_form_validation($mform, $data, []));
+        ob_start();
+        $mform->display();
+        $out = ob_get_clean();
+        $this->assertContains('value="s3.amazonaws.com" selected', $out);
+        $this->assertContains('value="STANDARD" selected', $out);
+        $data['attachments'] = $form->draftid();
+        $this->expectException('Aws\S3\Exception\S3Exception');
+        repository_s3bucket::instance_form_validation($mform, $data, []);
     }
 }
 
@@ -108,6 +165,7 @@ class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testc
  * @copyright  2018 iplusacademy.org
  * @author     Renaat Debleu <info@eWallah.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass repository_s3bucket/manage_form
  */
 class repository_s3bucket_testform extends repository_s3bucket_manage_form {
 
@@ -117,17 +175,19 @@ class repository_s3bucket_testform extends repository_s3bucket_manage_form {
      * Form definition.
      */
     public function definition() {
+        global $USER;
+        $context = context_user::instance($USER->id);
         $this->accesskey = 'ABC';
-        $context = context_system::instance();
         $fs = get_file_storage();
-        $this->draft = file_get_unused_draft_itemid();
-        $filerecord = ['component' => 'system', 'filearea' => 'draft', 'contextid' => $context->id,
-                       'itemid' => $this->draft, 'filename' => 'filename.jpg', 'filepath' => '/'];
+        $draft = file_get_unused_draft_itemid();
+        $filerecord = ['component' => 'user', 'filearea' => 'draft', 'contextid' => $context->id,
+                       'itemid' => $draft, 'filename' => 'filename.jpg', 'filepath' => '/'];
         $fs->create_file_from_string($filerecord, 'test content');
-        $files = $fs->get_directory_files($context->id, 'sytem', 'draft', $this->draft, '/', false, false);
-        $this->_customdata['draftitemid'] = $this->draft;
+        $files = $fs->get_directory_files($context->id, 'user', 'draft', $draft, '/', false, false);
+        $this->_customdata['draftitemid'] = $draft;
         $this->_customdata['options'] = ['subdirs' => 0, 'maxbytes' => 0, 'maxfiles' => -1, 'context' => $context];
         $this->_customdata['files'] = $files;
+        $this->draft = $draft;
     }
     /**
      * Returns form reference
