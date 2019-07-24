@@ -42,16 +42,19 @@ class repository_s3bucket_generator extends testing_repository_generator {
     protected function prepare_type_record(array $record) {
         $record = parent::prepare_type_record($record);
         if (!isset($record['access_key'])) {
-            $record['access_key'] = 'access_key';
+            $record['access_key'] = 'access';
         }
         if (!isset($record['secret_key'])) {
-            $record['secret_key'] = 'secret_key';
+            $record['secret_key'] = 'secret';
         }
         if (!isset($record['endpoint'])) {
-            $record['endpoint'] = 'endpoint';
+            $record['endpoint'] = 's3.amazonaws.com';
         }
         if (!isset($record['storageclass'])) {
-            $record['storageclass'] = 'storageclass';
+            $record['bucket_name'] = 'testrepo';
+        }
+        if (!isset($record['storageclass'])) {
+            $record['storageclass'] = 'STANDARD';
         }
         return $record;
     }

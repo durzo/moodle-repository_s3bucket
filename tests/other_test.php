@@ -18,8 +18,7 @@
  * Other tests.
  *
  * @package    repository_s3bucket
- * @copyright  2018 iplusacademy.org
- * @author     Renaat Debleu <info@eWallah.net>
+ * @copyright  2017 Renaat Debleu (www.eWallah.net) (based on work by Dongsheng Cai)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -35,8 +34,7 @@ require_once($CFG->dirroot . '/repository/s3bucket/manage_form.php');
  * Other tests.
  *
  * @package    repository_s3bucket
- * @copyright  2018 iplusacademy.org
- * @author     Renaat Debleu <info@eWallah.net>
+ * @copyright  2017 Renaat Debleu (www.eWallah.net) (based on work by Dongsheng Cai)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @coversDefaultClass repository_s3bucket
  */
@@ -57,7 +55,7 @@ class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testc
     public function test_class() {
         $this->resetAfterTest(true);
         $repo = new \repository_s3bucket(1);
-        $repo->set_option(['endpoint' => 's3.eu-central-1.amazonaws.com', 'secret_key' => 'secret', 'bucket_name' => 'test',
+        $repo->set_option(['endpoint' => 's3.amazonaws.com', 'secret_key' => 'secret', 'bucket_name' => 'test',
                            'storageclass' => 'STANDARD', 'access_key' => 'abc']);
         $this->assertEquals('Amazon S3 bucket', $repo->get_name());
         $this->assertTrue($repo->check_login());
@@ -112,7 +110,7 @@ class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testc
         $this->resetAfterTest(true);
         $this->SetAdminUser();
         $context = context_user::instance($USER->id);
-        $para = ['plugin' => '$s3bucket', 'typeid' => '', 'instance' => null, 'contextid' => $context->id];
+        $para = ['plugin' => 's3bucket', 'typeid' => '', 'instance' => null, 'contextid' => $context->id];
         $mform = new repository_instance_form('', $para);
         $data = ['endpoint' => 's3.amazonaws.com', 'secret_key' => 'secret', 'bucket_name' => 'test',
                  'storageclass' => 'STANDARD', 'access_key' => 'abc', 'attachments' => null];
@@ -162,8 +160,7 @@ class repository_s3bucket_other_tests extends \core_privacy\tests\provider_testc
  * Test form.
  *
  * @package    repository_s3bucket
- * @copyright  2018 iplusacademy.org
- * @author     Renaat Debleu <info@eWallah.net>
+ * @copyright  2017 Renaat Debleu (www.eWallah.net)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @coversDefaultClass repository_s3bucket/manage_form
  */
