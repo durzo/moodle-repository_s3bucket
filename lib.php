@@ -27,9 +27,6 @@ defined('MOODLE_INTERNAL') || die;
 require_once($CFG->dirroot . '/repository/lib.php');
 require_once($CFG->dirroot . '/local/aws/sdk/aws-autoloader.php');
 
-use Aws\Common\Credentials\Credentials;
-use Aws\Common\Signature\SignatureV4;
-
 /**
  * This is a repository class used to browse a Amazon S3 bucket.
  *
