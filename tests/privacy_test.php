@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Amazon S3bucket repository data generator
+ * Privacy test.
  *
  * @package    repository_s3bucket
  * @copyright  2017 Renaat Debleu (www.eWallah.net) (based on work by Dongsheng Cai)
@@ -24,23 +24,24 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
+require_once($CFG->dirroot . '/repository/s3bucket/lib.php');
+
 /**
- * Amazon S3bucket repository data generator
+ * Other tests.
  *
  * @package    repository_s3bucket
  * @copyright  2017 Renaat Debleu (www.eWallah.net) (based on work by Dongsheng Cai)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass repository_s3bucket
  */
-class repository_s3bucket_generator extends testing_repository_generator {
+class repository_s3bucket_privacy_tests extends \core_privacy\tests\provider_testcase {
 
     /**
-     * Fill in record defaults.
-     *
-     * @param array $record
-     * @return array
+     * Test privacy.
      */
-    protected function prepare_record(array $record) {
-        $arr = ['access_key' => 'access', 'secret_key' => 'secret', 'endpoint' => 's3.amazonaws.com', 'bucket_name' => 'testrepo'];
-        return array_merge($arr, parent::prepare_record($record));
+    public function test_privacy() {
+        $privacy = new repository_s3bucket\privacy\provider();
+        $this->assertEquals('privacy:metadata', $privacy->get_reason());
     }
 }
