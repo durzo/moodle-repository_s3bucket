@@ -234,14 +234,4 @@ class repository_s3bucket_other_tests extends \advanced_testcase {
         $this->assertContains('value="s3.amazonaws.com" selected', $out);
         $this->assertEquals([], repository_s3bucket::instance_form_validation($mform, $data, []));
     }
-
-    /**
-     * Test access.
-     */
-    public function test_access() {
-        global $CFG;
-        $capabilities = [];
-        require_once($CFG->dirroot . '/repository/s3bucket/db/access.php');
-        $this->assertCount(2, $capabilities);
-    }
 }

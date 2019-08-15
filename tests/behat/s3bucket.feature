@@ -68,35 +68,3 @@ Feature: S3 bucket repository should throw no errors
     Then I should not see "Amazon S3 bucket"
     And I am on "Course 1" course homepage
     And I should not see "Amazon S3 bucket"
-
-  @javascript
-  Scenario: An admin can see the repository
-    When I log in as "admin"
-    And I follow "Manage private files..."
-    And I click on "//label[contains(., 'Files')]/ancestor::div[contains(concat(' ', @class, ' '), ' fitem ')]//*[contains(@title, 'Add...')]" "xpath_element"
-    Then I should see "Testrepo"
-
-  @javascript
-  Scenario: A teacher cannot see the repository in private area
-    When I log in as "teacher"
-    And I follow "Manage private files..."
-    And I click on "//label[contains(., 'Files')]/ancestor::div[contains(concat(' ', @class, ' '), ' fitem ')]//*[contains(@title, 'Add...')]" "xpath_element"
-    Then I should not see "Testrepo"
-
-  @javascript
-  Scenario: A teacher can see the repository in a course module
-    When I log in as "teacher"
-    And I am on "Course 1" course homepage with editing mode on
-    When I add a "Folder" to section "1"
-    And I set the following fields to these values:
-      | Name | Folder name |
-      | Description | Folder description |
-    And I click on "//label[contains(., 'Files')]/ancestor::div[contains(concat(' ', @class, ' '), ' fitem ')]//*[contains(@title, 'Add...')]" "xpath_element"
-    Then I should see "Testrepo"
-
-  @javascript
-  Scenario: A student cannot see the repository
-    When I log in as "student"
-    And I follow "Manage private files..."
-    And I click on "//label[contains(., 'Files')]/ancestor::div[contains(concat(' ', @class, ' '), ' fitem ')]//*[contains(@title, 'Add...')]" "xpath_element"
-    Then I should not see "Testrepo"
