@@ -56,6 +56,7 @@ before_install:
   - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://127.0.0.1 &
 
 install:
+  - moodle-plugin-ci add-plugin --clone https://github.com/ewallah/moodle-local_aws.git
   - moodle-plugin-ci install
 
 script:
