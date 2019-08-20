@@ -33,7 +33,7 @@ require_once($CFG->dirroot . '/repository/s3bucket/lib.php');
  * @package    repository_s3bucket
  * @copyright  2017 Renaat Debleu (www.eWallah.net) (based on work by Dongsheng Cai)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass repository_s3bucket
+ * @coversDefaultClass repository_s3bucket\privacy\provider
  */
 class repository_s3bucket_privacy_tests extends \core_privacy\tests\provider_testcase {
 
