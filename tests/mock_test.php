@@ -87,7 +87,6 @@ class repository_s3bucket_mock_tests extends \advanced_testcase {
             ->with(['Bucket' => 'testbucket', 'key' => 'key'])
             ->will($this->returnValue([]));
         $list = $client->getObject(['Bucket' => 'testbucket', 'key' => 'key']);
-        
     }
 
     /**
@@ -104,9 +103,5 @@ class repository_s3bucket_mock_tests extends \advanced_testcase {
         $method = $reflection->getMethod('create_s3');
         $method->setAccessible(true);
         $this->assertInstanceOf('Aws\S3\S3Client', $method->invoke($s3bucket));
-        
-        // $s3 = $this->invokeMethod($s3bucket, 'create_s3');
-        // $this->assertInstanceOf('Aws\S3\S3Client', $s3);
-        
     }
 }
