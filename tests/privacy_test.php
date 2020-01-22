@@ -28,7 +28,7 @@ global $CFG;
 require_once($CFG->dirroot . '/repository/s3bucket/lib.php');
 
 /**
- * Other tests.
+ * Privacy tests.
  *
  * @package    repository_s3bucket
  * @copyright  2017 Renaat Debleu (www.eWallah.net) (based on work by Dongsheng Cai)
