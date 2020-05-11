@@ -39,3 +39,4 @@ $string['privacy:metadata'] = 'The AWS S3 bucket repository plugin does not stor
 $string['s3bucket:addinstance'] = 'Add a new AWS S3 bucket instance';
 $string['s3bucket:view'] = 'View AWS S3 bucket repository';
 $string['storageclass'] = 'Storage class';
+$string['basepath'] = 'Restrict to base path';

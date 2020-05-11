@@ -40,6 +40,19 @@ class repository_s3bucket extends repository {
     private $_s3client;
 
     /**
+     * Normalised base path
+     * @return string
+     */
+    protected function get_base_path() {
+        $basepath = $this->get_option('base_path');
+        if ($basepath) {
+            return ltrim(rtrim($basepath, '/'), '/') . '/';
+        } else {
+            return '';
+        }
+    }
+
+    /**
      * Get S3 file list
      *
      * @param string $path this parameter can a folder name, or a identification of folder
@@ -49,33 +62,47 @@ class repository_s3bucket extends repository {
     public function get_listing($path = '.', $page = '') {
         global $OUTPUT;
         $s = $this->create_s3();
+        $basepath = $this->get_base_path();
         $bucket = $this->get_option('bucket_name');
-        $diricon = $OUTPUT->image_url(file_folder_icon(24))->out(false);
-        $fileicon = $OUTPUT->image_url(file_extension_icon('', 24))->out(false);
-        $place = [['name' => $bucket, 'path' => $path]];
+        $diricon = $OUTPUT->image_url(file_folder_icon(64))->out(false);
+        $fileicon = $OUTPUT->image_url(file_extension_icon('', 64))->out(false);
+        $place = [['name' => $this->get_name(), 'path' => '']];
+        if ($path != '.' && $path != '') {
+            $path = rtrim($path, '/') . '/';
+            $parts = preg_split('|/|', $path, -1, PREG_SPLIT_NO_EMPTY);
+            foreach ($parts as $i => $part) {
+                $subpath = join('/', array_slice($parts, 0, $i + 1));
+                $place[] = ['name' => $part, 'path' => $subpath.'/'];
+            }
+        } else {
+            $path = '';
+        }
         $files = [];
-
         try {
-            $results = $s->getPaginator('ListObjects', ['Bucket' => $bucket, 'Prefix' => $path]);
+            $results = $s->getPaginator('ListObjects', ['Bucket' => $bucket, 'Prefix' => $basepath . $path, 'Delimiter' => '/']);
         } catch (S3Exception $e) {
             throw new moodle_exception('errorwhilecommunicatingwith', 'repository', '', $this->get_name(), $e->getMessage());
         }
-        $path = ($path === '') ? '.' : $path . '/';
         foreach ($results as $result) {
-            foreach ($result['Contents'] as $object) {
-                $pathinfo = pathinfo($object['Key']);
-                if ($object['Size'] == 0) {
-                    if ($pathinfo['dirname'] == $path) {
-                        $files[] = ['title' => $pathinfo['basename'], 'children' => [], 'thumbnail' => $diricon,
-                                    'thumbnail_height' => 24, 'thumbnail_width' => 24, 'path' => $object['Key']];
-                    }
-                } else {
-                    if ($pathinfo['dirname'] == $path or $pathinfo['dirname'] . '//' == $path) {
-                        $files[] = ['title' => $pathinfo['basename'], 'size' => $object['Size'], 'path' => $object['Key'],
-                                    'datemodified' => date_timestamp_get($object['LastModified']), 'thumbnail_height' => 24,
-                                    'thumbnail_width' => 24, 'source' => $object['Key'], 'thumbnail' => $fileicon];
-                    }
+            // Subdirectories first.
+            foreach ($result['CommonPrefixes'] as $object) {
+                $dirpath = $path . basename($object['Prefix']) . '/';
+                if (!in_array(basename($object['Prefix']), array_column($files, 'title'))) {
+                    $files[] = ['title' => basename($object['Prefix']), 'children' => [], 'thumbnail' => $diricon,
+                                'thumbnail_height' => 64, 'thumbnail_width' => 64, 'path' => $dirpath];
                 }
+            }
+            // Files in the current directory
+            foreach ($result['Contents'] as $object) {
+                if ($object['Size'] == 0) {
+                    // Folders created by the S3 Console (web) are really just 0 byte files.
+                    // They get discovered in CommonPrefixes above, so skip them here.
+                    continue;
+                }
+                $filepath = $path . basename($object['Key']);
+                $files[] = ['title' => basename($object['Key']), 'size' => $object['Size'], 'path' => $filepath,
+                            'datemodified' => date_timestamp_get($object['LastModified']), 'thumbnail_height' => 64,
+                            'thumbnail_width' => 64, 'source' => $filepath, 'thumbnail' => $fileicon];
             }
         }
         return ['list' => $files, 'path' => $place, 'manage' => false, 'dynload' => true, 'nologin' => true, 'nosearch' => true];
@@ -90,7 +117,7 @@ class repository_s3bucket extends repository {
      * @param bool $forcedownload If true (default false), forces download of file rather than view in browser/plugin
      * @param array $options additional options affecting the file serving
      */
-    public function send_file($storedfile, $lifetime = 6000, $filter = 0, $forcedownload = false, array $options = null) {
+    public function send_file($storedfile, $lifetime = 6000, $filter = 0, $forcedownload = true, array $options = null) {
         $this->send_otherfile($storedfile->get_reference(), "+60 minutes");
     }
 
@@ -102,9 +129,11 @@ class repository_s3bucket extends repository {
      */
     public function send_otherfile($reference, $lifetime) {
         $s3 = $this->create_s3();
-        $cmd = $s3->getCommand('GetObject', ['Bucket' => $this->get_option('bucket_name'), 'Key' => $reference]);
+        $cmd = $s3->getCommand('GetObject', ['Bucket' => $this->get_option('bucket_name'),
+            'Key' => $this->get_base_path() . $reference, 'ResponseContentDisposition' => 'attachment']);
         $req = $s3->createPresignedRequest($cmd, "+60 minutes");
         header('Location: ' . (string)$req->getUri());
+        exit;
     }
 
     /**
@@ -148,11 +177,11 @@ class repository_s3bucket extends repository {
         $s = $this->create_s3();
         $bucket = $this->get_option('bucket_name');
         try {
-            $s->getObject(['Bucket' => $bucket, 'Key' => $filepath, 'SaveAs' => $path]);
+            $s->getObject(['Bucket' => $bucket, 'Key' => $this->get_base_path() . $filepath, 'SaveAs' => $path]);
         } catch (S3Exception $e) {
             throw new moodle_exception('errorwhilecommunicatingwith', 'repository', '', $this->get_name(), $e->getMessage());
         }
-        return ['path' => $path, 'url' => $filepath];
+        return ['path' => $path, 'url' => $this->get_base_path() . $filepath];
     }
 
     /**
@@ -175,7 +204,7 @@ class repository_s3bucket extends repository {
      * @return array
      */
     public static function get_instance_option_names() {
-        return ['access_key', 'secret_key', 'endpoint', 'bucket_name'];
+        return ['access_key', 'secret_key', 'endpoint', 'bucket_name', 'base_path'];
     }
 
     /**
@@ -202,11 +231,11 @@ class repository_s3bucket extends repository {
         $mform->setType('secret_key', PARAM_RAW_TRIMMED);
         $mform->addElement('text', 'bucket_name', get_string('bucketname', 'repository_s3bucket'), $textops);
         $mform->setType('bucket_name', PARAM_RAW_TRIMMED);
+        $mform->addElement('text', 'base_path', get_string('basepath', 'repository_s3bucket'), $textops);
+        $mform->setType('base_path', PARAM_RAW_TRIMMED);
         $mform->addElement('select', 'endpoint', get_string('endpoint', 'repository_s3'), $endpointselect);
         $mform->setDefault('endpoint', 's3.amazonaws.com');
 
-        $mform->addRule('access_key', $strrequired, 'required', null, 'client');
-        $mform->addRule('secret_key', $strrequired, 'required', null, 'client');
         $mform->addRule('bucket_name', $strrequired, 'required', null, 'client');
     }
 
@@ -220,19 +249,21 @@ class repository_s3bucket extends repository {
      */
     public static function instance_form_validation($mform, $data, $errors) {
         global $CFG;
-        if (isset($data['access_key']) && isset($data['secret_key']) && isset($data['bucket_name'])) {
+        if (isset($data['bucket_name'])) {
             $endpoint = self::fixendpoint($data['endpoint']);
-            $credentials = ['key' => $data['access_key'], 'secret' => $data['secret_key']];
             if (!empty($CFG->proxyhost)) {
                 $proxyhost = $CFG->proxyhost . (empty($CFG->proxyport)) ? : ':' . $CFG->proxyport;
                 if (!empty($CFG->proxyuser) and !empty($CFG->proxypassword)) {
                     $proxyhost = $CFG->proxyuser . ':' . $CFG->proxypassword . $proxyhost;
                 }
                 $proxytype = (empty($CFG->proxytype)) ? 'http://' : $CFG->proxytype;
-                $arr = ['version' => 'latest', 'signature_version' => 'v4', 'credentials' => $credentials, 'region' => $endpoint,
+                $arr = ['version' => 'latest', 'signature_version' => 'v4', 'region' => $endpoint,
                        'request.options' => ['proxy' => $proxytype . $proxyhost]];
             } else {
-                $arr = ['version' => 'latest', 'signature_version' => 'v4', 'credentials' => $credentials, 'region' => $endpoint];
+                $arr = ['version' => 'latest', 'signature_version' => 'v4', 'region' => $endpoint];
+            }
+            if (!empty($data['access_key']) && !empty($data['secret_key'])) {
+                $arr['credentials'] = ['key' => $data['access_key'], 'secret' => $data['secret_key']];
             }
             $s3 = \Aws\S3\S3Client::factory($arr);
             try {
@@ -250,7 +281,7 @@ class repository_s3bucket extends repository {
      * @return int
      */
     public function supported_returntypes() {
-        return FILE_EXTERNAL | FILE_REFERENCE | FILE_EXTERNAL;
+        return FILE_INTERNAL | FILE_REFERENCE | FILE_EXTERNAL;
     }
 
     /**
@@ -260,13 +291,11 @@ class repository_s3bucket extends repository {
      */
     private function create_s3() {
         if ($this->_s3client == null) {
-            $accesskey = $this->get_option('access_key');
-            if (empty($accesskey)) {
-                throw new moodle_exception('needaccesskey', 'repository_s3');
-            }
-            $credentials = ['key' => $accesskey, 'secret' => $this->get_option('secret_key')];
             $endpoint = self::fixendpoint($this->get_option('endpoint'));
-            $arr = ['version' => 'latest', 'signature_version' => 'v4', 'credentials' => $credentials, 'region' => $endpoint];
+            $arr = ['version' => 'latest', 'signature_version' => 'v4', 'region' => $endpoint];
+            if (!empty($this->get_option('access_key')) && !empty($this->get_option('secret_key'))) {
+                $arr['credentials'] = ['key' => $this->get_option('access_key'), 'secret' => $this->get_option('secret_key')];
+            }
             $this->_s3client = \Aws\S3\S3Client::factory($arr);
         }
         return $this->_s3client;
@@ -305,7 +334,7 @@ function repository_s3bucket_pluginfile($course, $cm, $context, $filearea, $args
         return false;
     }
     $itemid = array_shift($args);
-    $reference = array_pop($args); // The last item in the $args array.
+    $reference = join('/', $args);
     $repo = repository::get_repository_by_id($itemid, $context);
     $repo->check_capability();
     $repo->send_otherfile($reference, "+60 minutes");
